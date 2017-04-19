@@ -1,4 +1,5 @@
 import pickle
+import functools
 
 import tornado.web
 
@@ -38,6 +39,16 @@ class viewer(tornado.web.RequestHandler, Attrs):
 
 
 class server(TCPServer, Attrs):
+    @classmethod
+    def spawn(cls, fn):
+        @functools.wraps(fn)
+        def wraped():
+            cls.instance = cls(fn)
+            viewer.observe(cls.instance)
+            viewer.init()
+            lp.start()
+        return wraped
+
     def __init__(self, genfn):
         TCPServer.__init__(self)
 
@@ -48,7 +59,6 @@ class server(TCPServer, Attrs):
         self.listen(self.port)
         self.start()
         print "Server started at", self.port
-        viewer.observe(self)
 
     @gen.coroutine
     def handle_stream(self, stream, address):
@@ -75,6 +85,25 @@ class server(TCPServer, Attrs):
 
 class client(TCPClient, Attrs):
     ret = (None, Attrs.greet)
+
+    @classmethod
+    def spawn(cls, fn):
+        @classmethod
+        def spawner(cls):
+            instance = cls(fn)
+            lp.start()
+        cls.spawner = spawner
+
+        @functools.wraps(fn)
+        def wraped(count):
+            from multiprocessing import Process
+            processes = []
+            for i in xrange(0, count):
+                processes.append(Process(target=cls.spawner))
+                processes[-1].start()
+            for p in processes:
+                p.join()
+        return wraped
 
     def __init__(self, workfn):
         TCPClient.__init__(self)
