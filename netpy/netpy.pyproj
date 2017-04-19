@@ -22,7 +22,26 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="butterfly\attrs.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="butterfly\lp.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="butterfly\task.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="butterfly\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="earl\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="netpy.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="butterfly\" />
+    <Folder Include="earl\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
