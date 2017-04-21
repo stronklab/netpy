@@ -28,6 +28,9 @@
     <Compile Include="butterfly\lp.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="butterfly\observer.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="butterfly\task.py">
       <SubType>Code</SubType>
     </Compile>

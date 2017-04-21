@@ -6,48 +6,26 @@ import tornado.web
 from lp import *
 from attrs import *
 from task import *
+from observer import *
 
 
 def call(fn):
     fn()
 
 
-class viewer(tornado.web.RequestHandler, Attrs):
-    viewers = []
-    app = None
-
+class server(TCPServer, Observer, Attrs):
     @classmethod
-    def observe(cls, model, point=r"/"):
-        cls.viewers.append((point, cls, dict(model=model)))
-
-    @classmethod
-    def init(cls):
-        cls.app = tornado.web.Application(cls.viewers)
-        cls.app.listen(cls.viewport)
-        print "Viewer started at", cls.viewport
-
-    def initialize(self, model):
-        self.model = model
-    
-    @property
-    def progress(self):
-        return float(len(self.model.complete))/self.model.count_tasks
-
-    def get(self):
-        self.write("Hello!<br/>")
-        self.write("Currently complete %.2f%%" % self.progress)
-
-
-class server(TCPServer, Attrs):
-    @classmethod
-    def spawn(cls, fn):
-        @functools.wraps(fn)
-        def wraped():
-            cls.instance = cls(fn)
-            viewer.observe(cls.instance)
-            viewer.init()
-            lp.start()
-        return wraped
+    def spawn(cls, obs):
+        def more_wrapped(fn):
+            @functools.wraps(fn)
+            def wraped(observer):
+                cls.instance = cls.type(fn)
+                if observer:
+                    cls.instance.start_observer()
+                lp.start()
+            return wraped
+        cls.type = type("observed", (cls, obs), {})
+        return more_wrapped
 
     def __init__(self, genfn):
         TCPServer.__init__(self)
@@ -95,7 +73,7 @@ class client(TCPClient, Attrs):
         cls.spawner = spawner
 
         @functools.wraps(fn)
-        def wraped(count):
+        def wraped(count, observer):
             from multiprocessing import Process
             processes = []
             for i in xrange(0, count):
