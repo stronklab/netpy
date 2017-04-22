@@ -35,8 +35,13 @@ class server(TCPServer, Observer, Attrs):
         self.tasks = iter(enumerate(self.tasks))
         self.complete = list()
         self.listen(self.port)
+        PeriodicCallback(self.save_work, 60*1000).start()
         self.start()
         print "Server started at", self.port
+
+    def save_work(self):
+        with open("work", "w") as file:
+            pickle.dump(self.complete, file)
 
     @gen.coroutine
     def handle_stream(self, stream, address):
