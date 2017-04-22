@@ -61,27 +61,33 @@ class server(TCPServer, Observer, Attrs):
             yield stream.write(pickle.dumps(self.notask) + self.sep)
 
 
-class client(TCPClient, Attrs):
+class client(TCPClient, Observer, Attrs):
     ret = (None, Attrs.greet)
 
     @classmethod
-    def spawn(cls, fn):
-        @classmethod
-        def spawner(cls):
-            instance = cls(fn)
-            lp.start()
-        cls.spawner = spawner
+    def spawn(cls, obs):
+        def more_wrapped(fn):
+            @classmethod
+            def spawner(cls):
+                instance = cls.type(fn)
+                lp.start()
+            cls.spawner = spawner
 
-        @functools.wraps(fn)
-        def wraped(count, observer):
-            from multiprocessing import Process
-            processes = []
-            for i in xrange(0, count):
-                processes.append(Process(target=cls.spawner))
-                processes[-1].start()
-            for p in processes:
-                p.join()
-        return wraped
+            @functools.wraps(fn)
+            def wraped(count, observer, server):
+                if count > 1:
+                    from multiprocessing import Process
+                    processes = []
+                    for i in xrange(0, count):
+                        processes.append(Process(target=cls.spawner))
+                        processes[-1].start()
+                    for p in processes:
+                        p.join()
+                else:
+                    cls.spawner()
+            return wraped
+        cls.type = type("observed", (cls, obs), {})
+        return more_wrapped
 
     def __init__(self, workfn):
         TCPClient.__init__(self)
@@ -93,7 +99,7 @@ class client(TCPClient, Attrs):
         @gen.coroutine
         def wrap():
             print "Connecting to", self.port
-            self.stream = yield self.connect("localhost", self.port)
+            self.stream = yield self.connect(self.ip, self.port)
             self.stream.set_nodelay(True)
         lp.later(self.take)
 

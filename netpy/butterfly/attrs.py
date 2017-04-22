@@ -1,4 +1,5 @@
 class Attrs:
+    ip = "localhost"
     viewport = 8123
     port = 39511
     sep = "thisisdummysep"
