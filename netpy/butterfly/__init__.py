@@ -79,7 +79,9 @@ class client(TCPClient, Observer, Attrs):
             cls.spawner = spawner
 
             @functools.wraps(fn)
-            def wraped(count, observer, server):
+            def wraped(count, observer, server, port):
+                if port:
+                    cls.port = port
                 if count > 1:
                     from multiprocessing import Process
                     processes = []

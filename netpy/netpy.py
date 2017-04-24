@@ -29,6 +29,7 @@ class WorkerObserver:
 
 @app.cmd
 @app.cmd_arg("-o", "--observer", action="store_const", const=True, help="Start observer of tasks completing")
+@app.cmd_arg("-p", "--port", type=int, default=None, help="Remote server's port")
 @server.spawn(ServeObserver)
 def serve():
     for i in xrange(10000, 20000):
@@ -38,6 +39,7 @@ def serve():
 @app.cmd
 @app.cmd_arg("-c", "--count", type=int, default=1, help="Count of serving workers")
 @app.cmd_arg("-s", "--server", type=str, default="localhost", help="Remote server's ip")
+@app.cmd_arg("-p", "--port", type=int, default=None, help="Remote server's port")
 @app.cmd_arg("-o", "--observer", action="store_const", const=True, help="Start observer of tasks completing")
 @client.spawn(WorkerObserver)
 def worker(k):

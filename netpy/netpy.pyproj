@@ -41,10 +41,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="netpy.py" />
-    <Compile Include="__init__.py">
+    <Compile Include="setup.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="__main__.py">
+    <Compile Include="__init__.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
