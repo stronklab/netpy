@@ -39,9 +39,11 @@ class server(TCPServer, Observer, Attrs):
         self.start()
         print "Server started at", self.port
 
-    def save_work(self):
-        with open("work", "w") as file:
+    def save_work(self, i=[0]):
+        with open("work.part%d" % i[0], "w") as file:
             pickle.dump(self.complete, file)
+            self.complete = []
+            i[0] += 1
 
     @gen.coroutine
     def handle_stream(self, stream, address):
@@ -79,9 +81,10 @@ class client(TCPClient, Observer, Attrs):
             cls.spawner = spawner
 
             @functools.wraps(fn)
-            def wraped(count, observer, server, port):
+            def wraped(count, observer, server, port, encode, forcencode):
                 if port:
                     cls.port = port
+                cls.kw = {"e": encode, "f": forcencode}
                 if count > 1:
                     from multiprocessing import Process
                     processes = []
@@ -125,7 +128,8 @@ class client(TCPClient, Observer, Attrs):
                 self.ret = yield self.stream.read_until(self.sep)
                 self.ret = pickle.loads(self.ret)
                 print "Received task:", self.ret
-                self.ret = self.ret, self.workfn(*self.ret, **self.ret)
+                cls.kw.update(self.ret)
+                self.ret = self.ret, self.workfn(*self.ret, **cls.kw)
                 print "Complete task (%s): %s" % self.ret
         except StreamClosedError:
             return
